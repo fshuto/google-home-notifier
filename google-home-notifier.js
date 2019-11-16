@@ -28,8 +28,8 @@ var notify = function(message, callback) {
   if (!deviceAddress){
     browser.start();
     browser.on('serviceUp', function(service) {
-      console.log('Device "%s" at %s:%d', service.name, service.addresses[0], service.port);
-      if (service.name.includes(device.replace(' ', '-'))){
+      console.log('Device "%s" at %s:%d', service.fullname, service.addresses[0], service.port);
+      if (service.fullname.includes(device.replace(' ', '-'))){
         deviceAddress = service.addresses[0];
         getSpeechUrl(message, deviceAddress, function(res) {
           callback(res);
@@ -48,8 +48,8 @@ var play = function(mp3_url, callback) {
   if (!deviceAddress){
     browser.start();
     browser.on('serviceUp', function(service) {
-      console.log('Device "%s" at %s:%d', service.name, service.addresses[0], service.port);
-      if (service.name.includes(device.replace(' ', '-'))){
+      console.log('Device "%s" at %s:%d', service.fullname, service.addresses[0], service.port);
+      if (service.fullname.includes(device.replace(' ', '-'))){
         deviceAddress = service.addresses[0];
         getPlayUrl(mp3_url, deviceAddress, function(res) {
           callback(res);
