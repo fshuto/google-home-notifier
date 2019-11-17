@@ -1,9 +1,9 @@
-var Client = require('castv2-client').Client;
-var DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
-var mdns = require('mdns-js');
-var browser = mdns.createBrowser(mdns.tcp('googlecast'));
-var deviceAddress;
-var language;
+const Client = require('castv2-client').Client;
+const DefaultMediaReceiver = require('castv2-client').DefaultMediaReceiver;
+const mdns = require('mdns-js');
+const browser = mdns.createBrowser(mdns.tcp('googlecast'));
+let deviceAddress;
+let language;
 
 var device = function(name, lang = 'en') {
     device = name;
@@ -24,18 +24,20 @@ var accent = function(accent) {
   return this;
 }
 
-var notify = function(message, callback) {
+const notify = (message, callback) => {
   if (!deviceAddress){
-    browser.start();
-    browser.on('serviceUp', function(service) {
+    browser.on('ready', () => {
+      browser.discover();
+    });
+    browser.on('update', (service) => {
       console.log('Device "%s" at %s:%d', service.fullname, service.addresses[0], service.port);
-      if (service.fullname.includes(device.replace(' ', '-'))){
+      if (service.fullname != undefined && service.fullname.includes(device.replace(' ', '-'))){
         deviceAddress = service.addresses[0];
-        getSpeechUrl(message, deviceAddress, function(res) {
+        getSpeechUrl(message, deviceAddress, (res) => {
           callback(res);
         });
+        browser.stop();
       }
-      browser.stop();
     });
   }else {
     getSpeechUrl(message, deviceAddress, function(res) {
@@ -64,12 +66,12 @@ var play = function(mp3_url, callback) {
   }
 };
 
-var getSpeechUrl = function(text, host, callback) {
-  googletts(text, language, 1, 1000, googlettsaccent).then(function (url) {
-    onDeviceUp(host, url, function(res){
+const getSpeechUrl = (text, host, callback) => {
+  googletts(text, language, 1, 1000).then((url) => {
+    onDeviceUp(host, url, (res) => {
       callback(res)
     });
-  }).catch(function (err) {
+  }).catch((err) => {
     console.error(err.stack);
   });
 };
@@ -80,24 +82,24 @@ var getPlayUrl = function(url, host, callback) {
     });
 };
 
-var onDeviceUp = function(host, url, callback) {
-  var client = new Client();
-  client.connect(host, function() {
-    client.launch(DefaultMediaReceiver, function(err, player) {
+const onDeviceUp = (host, url, callback) => {
+  const client = new Client();
+  client.connect(host, () => {
+    client.launch(DefaultMediaReceiver, (err, player) => {
 
-      var media = {
+      const media = {
         contentId: url,
         contentType: 'audio/mp3',
         streamType: 'BUFFERED' // or LIVE
       };
-      player.load(media, { autoplay: true }, function(err, status) {
+      player.load(media, { autoplay: true }, (err, status) => {
         client.close();
         callback('Device notified');
       });
     });
   });
 
-  client.on('error', function(err) {
+  client.on('error', (err) => {
     console.log('Error: %s', err.message);
     client.close();
     callback('error');
