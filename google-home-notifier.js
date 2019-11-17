@@ -5,13 +5,13 @@ const browser = mdns.createBrowser(mdns.tcp('googlecast'));
 let deviceAddress;
 let language;
 
-var device = function(name, lang = 'en') {
+let device = (name, lang = 'en') => {
     device = name;
     language = lang;
     return this;
 };
 
-var ip = function(ip, lang = 'en') {
+let ip = function(ip, lang = 'en') {
   deviceAddress = ip;
   language = lang;
   return this;
